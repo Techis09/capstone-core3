@@ -350,7 +350,7 @@ if ($_SESSION['role'] != "admin") {
 
     <div class="dashboard-cards">
       <div class="card">
-        <h3>Total Users</h3>
+        <h3>Total crm</h3>
         <div class="stat-value" id="Total Users" style="text-align: center;">
           <?php
           $result = mysqli_query($conn, "SELECT COUNT(*)AS TOTAL FROM CRM2");
@@ -376,9 +376,15 @@ if ($_SESSION['role'] != "admin") {
       </div>
 
       <div class="card">
-        <h3>Pending Request</h3>
-        <div class="stat-value" id="Pending Request">0</div>
-        <div class="stat-label">Loading data...</div>
+        <h3>Total user</h3>
+          <div class="stat-value" id="Total Users" style="text-align: center;">
+          <?php
+          $result = mysqli_query($conn, "SELECT COUNT(*)AS TOTAL FROM users");
+          $row = mysqli_fetch_assoc($result);
+          echo $row['TOTAL'];
+          ?>
+        </div>
+       
       </div>
 
       <div class="card">
