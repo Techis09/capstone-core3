@@ -165,8 +165,8 @@ $profileImage = !empty($row['profile_image']) ? $row['profile_image'] : 'default
           <canvas id="shipmentTrends"></canvas>
         </div>
       </div>
-      <div class="col-md-6">
-        <div class="card p-3">
+      <div class="col-md-3">
+        <div class="card p-2">
           <h5>🚛 Status Breakdown</h5>
           <canvas id="statusBreakdown"></canvas>
         </div>
