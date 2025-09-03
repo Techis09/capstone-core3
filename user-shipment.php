@@ -1,5 +1,15 @@
 <?php
 include('session.php');
+include('database.php'); // include DB connection
+
+// Fetch the latest profile image from DB
+$username = $_SESSION['username'];
+$sql = "SELECT profile_image FROM users WHERE username = '$username'";
+$result = mysqli_query($conn, $sql);
+$row = mysqli_fetch_assoc($result);
+
+// Use database value, fallback to default if empty
+$profileImage = !empty($row['profile_image']) ? $row['profile_image'] : 'default-avatar.png';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -36,12 +46,6 @@ include('session.php');
       color: white;
     }
 
-    .sidebar h2 {
-      margin: 0 0 30px;
-      font-size: 20px;
-      text-align: center;
-    }
-
     .sidebar a {
       display: block;
       padding: 12px;
@@ -49,8 +53,11 @@ include('session.php');
       text-decoration: none;
       transition: background 0.3s;
     }
-    .sidebar a:hover {
+
+    .sidebar a:hover,
+    .sidebar a.active {
       background: rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
     }
 
     /* Main content */
@@ -76,58 +83,7 @@ include('session.php');
       margin-bottom: 20px;
     }
 
-    form {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    input[type="text"] {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      transition: background 0.3s, color 0.3s, border 0.3s;
-    }
-
-    button {
-      padding: 10px 20px;
-      background: var(--primary-color);
-      border: none;
-      color: #fff;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      background: #0056b3;
-    }
-
-    .result {
-      padding: 15px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      background: #fdfdfd;
-      transition: background 0.3s, color 0.3s;
-    }
-
-    .result h3 {
-      margin: 0 0 10px;
-      color: #333;
-    }
-
-    .status {
-      font-weight: bold;
-      color: green;
-    }
-
-    .not-found {
-      color: red;
-      font-weight: bold;
-    }
-
-    /* 🌙 Dark Mode */
+    /* Dark Mode */
     .dark-mode {
       background: var(--dark-bg);
       color: #f1f1f1;
@@ -150,59 +106,12 @@ include('session.php');
       border: 1px solid #555;
     }
 
-    /* Toggle Switch */
-    .dark-toggle {
-      position: absolute;
-      top: 20px;
-      right: 30px;
+    /* Profile dropdown */
+    .profile-header {
       display: flex;
+      justify-content: flex-end;
       align-items: center;
-      gap: 8px;
-    }
-
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 50px;
-      height: 25px;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: 0.4s;
-      border-radius: 25px;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 18px;
-      width: 18px;
-      left: 4px;
-      bottom: 3.5px;
-      background-color: white;
-      transition: 0.4s;
-      border-radius: 50%;
-    }
-
-    input:checked+.slider {
-      background-color: #007bff;
-    }
-
-    input:checked+.slider:before {
-      transform: translateX(24px);
+      margin-bottom: 20px;
     }
   </style>
 </head>
@@ -216,32 +125,44 @@ include('session.php');
       <h5>Freight System</h5>
     </div>
     <a href="user-acct.php">🏠 Dashboard</a>
-    <a href="user-shipment.php">📦 Track Shipment</a>
-    <a href="user-book-shipment.php" class="active">📝 Book Shipment</a>
+    <a href="user-shipment.php" class="active">📦 Track Shipment</a>
+    <a href="user-book-shipment.php">📝 Book Shipment</a>
     <a href="user-ship-history.php">📜 Shipment History</a>
-    <a href="user-profile.php">👤 Profile</a>
-    <a href="user-logout.php">🚪 Logout</a>
   </div>
 
   <!-- Main Content -->
   <div class="main">
 
-    <!-- 🌙 Dark Mode Toggle Switch -->
-    <div class="dark-toggle">
-      <label class="switch">
-        <input type="checkbox" id="darkModeSwitch" onclick="toggleDarkMode()">
-        <span class="slider"></span>
-      </label>
-      <span>🌙</span>
+    <!-- Profile Header with Dark Mode -->
+    <div class="profile-header">
+      <!-- Dark Mode Toggle -->
+      <div class="form-check form-switch theme-toggle mb-0 me-3">
+        <input class="form-check-input" type="checkbox" id="darkModeSwitch" onclick="toggleDarkMode()">
+        <label class="form-check-label" for="darkModeSwitch">🌙</label>
+      </div>
+
+      <!-- Profile Dropdown -->
+      <div class="dropdown">
+        <img src="<?php echo $profileImage; ?>" alt="Profile"
+          class="rounded-circle"
+          style="width:55px; height:55px; object-fit:cover; border:2px solid #0d6efd; cursor:pointer;"
+          id="profileDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false">
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+          <li><a class="dropdown-item" href="user-profile.php">👤 Profile</a></li>
+          <li><a class="dropdown-item" href="logout.php">🚪 Logout</a></li>
+        </ul>
+      </div>
     </div>
 
     <div class="container">
       <h2>🔍 Track Your Shipment</h2>
 
       <!-- Track form -->
-      <form method="POST">
-        <input type="text" name="tracking_number" placeholder="Enter Tracking Number" required>
-        <button type="submit">Track</button>
+      <form method="POST" class="d-flex gap-2 mb-3">
+        <input type="text" name="tracking_number" class="form-control" placeholder="Enter Tracking Number" required>
+        <button type="submit" class="btn btn-primary">Track</button>
       </form>
 
       <!-- Result -->
@@ -266,6 +187,7 @@ include('session.php');
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");

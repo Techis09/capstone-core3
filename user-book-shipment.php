@@ -1,5 +1,15 @@
 <?php
 include('session.php');
+include('database.php'); // DB connection
+
+// Fetch profile image
+$username = $_SESSION['username'];
+$sql = "SELECT profile_image FROM users WHERE username = '$username'";
+$result = mysqli_query($conn, $sql);
+$row = mysqli_fetch_assoc($result);
+
+// Fallback image
+$profileImage = !empty($row['profile_image']) ? $row['profile_image'] : 'default-avatar.png';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -49,7 +59,7 @@ include('session.php');
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
 
-    /* 🌙 Dark Mode Styles */
+    /* 🌙 Dark Mode */
     .dark-mode {
       background-color: #212529 !important;
       color: white !important;
@@ -82,11 +92,12 @@ include('session.php');
       border-color: #0d6efd !important;
     }
 
-    .theme-toggle {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      cursor: pointer;
+    /* Profile header */
+    .profile-header {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-bottom: 20px;
     }
   </style>
 </head>
@@ -103,16 +114,31 @@ include('session.php');
     <a href="user-shipment.php">📦 Track Shipment</a>
     <a href="user-book-shipment.php" class="active">📝 Book Shipment</a>
     <a href="user-ship-history.php">📜 Shipment History</a>
-    <a href="user-profile.php">👤 Profile</a>
-    <a href="logout.php">🚪 Logout</a>
   </div>
 
   <!-- Main Content -->
   <div class="main-content">
-    <!-- Dark Mode Toggle -->
-    <div class="theme-toggle form-check form-switch">
-      <input class="form-check-input" type="checkbox" id="darkModeSwitch">
-      <label class="form-check-label" for="darkModeSwitch">🌙 Dark Mode</label>
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <!-- Dark Mode Toggle -->
+      <div class="form-check form-switch theme-toggle mb-0 me-3">
+        <input class="form-check-input" type="checkbox" id="darkModeSwitch">
+        <label class="form-check-label" for="darkModeSwitch">🌙</label>
+      </div>
+
+      <!-- Profile Dropdown -->
+      <div class="dropdown">
+        <img src="<?php echo $profileImage; ?>" alt="Profile"
+          class="rounded-circle"
+          style="width:55px; height:55px; object-fit:cover; border:2px solid #0d6efd; cursor:pointer;"
+          id="profileDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false">
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+          <li><a class="dropdown-item" href="user-profile.php">👤 Profile</a></li>
+          <li><a class="dropdown-item" href="logout.php">🚪 Logout</a></li>
+        </ul>
+      </div>
     </div>
 
     <h2 class="mb-4">📝 Book a Shipment</h2>
@@ -168,13 +194,12 @@ include('session.php');
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    const darkModeSwitch = document.getElementById("darkModeSwitch");
-    darkModeSwitch.addEventListener("change", () => {
+    document.getElementById("darkModeSwitch").addEventListener("change", () => {
       document.body.classList.toggle("dark-mode");
     });
   </script>
 
 </body>
-
 </html>

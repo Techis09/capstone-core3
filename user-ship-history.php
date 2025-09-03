@@ -1,5 +1,15 @@
 <?php
 include('session.php');
+include('database.php'); // Make sure DB connection is available
+
+// Fetch the latest profile image from DB
+$username = $_SESSION['username'];
+$sql = "SELECT profile_image FROM users WHERE username = '$username'";
+$result = mysqli_query($conn, $sql);
+$row = mysqli_fetch_assoc($result);
+
+// Use database value, fallback to default if empty
+$profileImage = !empty($row['profile_image']) ? $row['profile_image'] : 'default-avatar.png';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -8,6 +18,8 @@ include('session.php');
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shipment History - Freight System</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     :root {
       --bg-color: #f8f9fa;
@@ -37,7 +49,7 @@ include('session.php');
     }
 
     /* Sidebar */
-   .sidebar {
+    .sidebar {
       height: 100vh;
       background: #2c3e50;
       padding-top: 20px;
@@ -46,12 +58,7 @@ include('session.php');
       color: white;
     }
 
-    .sidebar h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-     .sidebar a {
+    .sidebar a {
       display: block;
       padding: 12px;
       color: white;
@@ -59,64 +66,30 @@ include('session.php');
       transition: background 0.3s;
     }
 
-    .sidebar a:hover {
+    .sidebar a:hover,
+    .sidebar a.active {
       background: #0056b3;
+      border-radius: 5px;
     }
 
     /* Main content */
     .main {
-      margin-left: 220px;
+      margin-left: 240px;
       padding: 20px;
-      width: calc(100% - 220px);
+      width: calc(100% - 240px);
+    }
+
+    /* Top bar */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
     }
 
     /* Dark mode toggle */
-    .toggle-container {
-      text-align: right;
-      margin-bottom: 10px;
-    }
-
-    .toggle-switch {
-      position: relative;
-      display: inline-block;
-      width: 50px;
-      height: 24px;
-    }
-
-    .toggle-switch input {
-      display: none;
-    }
-
-    .slider {
-      position: absolute;
+    .theme-toggle {
       cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: .4s;
-      border-radius: 24px;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
-
-    input:checked+.slider {
-      background-color: #007bff;
-    }
-
-    input:checked+.slider:before {
-      transform: translateX(26px);
     }
 
     /* Container */
@@ -158,21 +131,24 @@ include('session.php');
       background: var(--hover-color);
     }
 
-    .status {
-      font-weight: bold;
-      color: green;
-    }
-
     .pending {
       color: orange;
+      font-weight: bold;
+    }
+
+    .intransit {
+      color: green;
+      font-weight: bold;
     }
 
     .delivered {
       color: blue;
+      font-weight: bold;
     }
 
     .cancelled {
       color: red;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -187,21 +163,39 @@ include('session.php');
     </div>
     <a href="user-acct.php">🏠 Dashboard</a>
     <a href="user-shipment.php">📦 Track Shipment</a>
-    <a href="user-book-shipment.php" class="active">📝 Book Shipment</a>
-    <a href="user-shipment-history.php">📜 Shipment History</a>
+    <a href="user-book-shipment.php">📝 Book Shipment</a>
+    <a href="user-shipment-history.php" class="active">📜 Shipment History</a>
     <a href="user-profile.php">👤 Profile</a>
     <a href="logout.php">🚪 Logout</a>
   </div>
 
   <!-- Main content -->
   <div class="main">
-    <div class="toggle-container">
-      <label class="toggle-switch">
-        <input type="checkbox" id="darkToggle">
-        <span class="slider"></span>
-      </label>
-    </div>
+   <!-- Topbar -->
+<div class="topbar d-flex justify-content-end align-items-center gap-3">
+  <!-- Dark mode toggle -->
+  <div class="form-check form-switch theme-toggle mb-0">
+    <input class="form-check-input" type="checkbox" id="theme-toggle">
+    <label class="form-check-label" for="theme-toggle">🌙</label>
+  </div>
 
+  <!-- Profile image dropdown -->
+  <div class="dropdown">
+    <img src="<?php echo $profileImage; ?>" alt="Profile"
+         class="rounded-circle"
+         style="width:55px; height:55px; object-fit:cover; border:2px solid #0d6efd; cursor:pointer;"
+         id="profileDropdown"
+         data-bs-toggle="dropdown"
+         aria-expanded="false">
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+      <li><a class="dropdown-item" href="user-profile.php">👤 My Profile</a></li>
+      <li><a class="dropdown-item" href="settings.php">⚙️ Settings</a></li>
+      <li><a class="dropdown-item" href="logout.php">🚪 Logout</a></li>
+    </ul>
+  </div>
+</div>
+
+    <!-- Shipment History -->
     <div class="container">
       <h2>📜 Shipment History</h2>
 
@@ -218,7 +212,7 @@ include('session.php');
         </thead>
         <tbody>
           <?php
-          // Example static data (replace with database query later)
+          // Example static data (replace later with DB query)
           $shipments = [
             ["FRT12345", "Manila", "Cebu", "25", "In Transit", "2025-09-01"],
             ["FRT67890", "Davao", "Manila", "10", "Delivered", "2025-08-28"],
@@ -242,14 +236,14 @@ include('session.php');
     </div>
   </div>
 
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Dark Mode Script -->
   <script>
-    // Dark mode toggle
-    const toggle = document.getElementById('darkToggle');
-    toggle.addEventListener('change', () => {
-      document.body.classList.toggle('dark');
+    document.getElementById("theme-toggle").addEventListener("change", function() {
+      document.body.classList.toggle("dark");
     });
   </script>
-
 </body>
-
 </html>
