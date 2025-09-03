@@ -337,7 +337,7 @@ if ($_SESSION['role'] != "admin") {
     <div class="header">
       <div class="hamburger" id="hamburger">☰</div>
       <div>
-        <h1>Admin Dashboard <span class="system-title">| (CORE 3)</span></h1>
+        <h1>Dashboard <span class="system-title">| (CORE 3)</span></h1>
       </div>
       <div class="theme-toggle-container">
         <span class="theme-label">Dark Mode</span>
