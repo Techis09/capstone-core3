@@ -197,7 +197,7 @@ $profileImage = !empty($row['profile_image']) ? $row['profile_image'] : 'default
 
     <!-- Shipment History -->
     <div class="container">
-      <h2>📜 Shipment History</h2>
+      <h2>📜User Shipment History</h2>
 
       <table>
         <thead>
